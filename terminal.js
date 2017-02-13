@@ -1,10 +1,10 @@
 
 $('.active').focus();
 
-var active_line = 1;
 var cursorPosition = 0;
 var user = "ryan";
 var hostname = "tim";
+var exitStatus = 0;
 
 var filesystem = {
 	"/" : {
@@ -65,10 +65,14 @@ var commands = {
 	"clear"		: "execClear",
 	"cat"		: "execCat",
 	"hostname"	: "execHostname",
+	"history"	: "execHistory",
 	"pwd"		: "execPwd",
 };
 
 var cwd = users[user][0];
+
+var commandHistory = [];
+var lineNumber = 0;
 
 $(function(){
 	$('.term').append('<div>['+user+'@'+hostname+' ~]# <span class="active_command"></span><span class="cursor">_</span></div>');
@@ -83,7 +87,7 @@ $(function(){
 	});
 
 	$(document).keydown(function(event){
-		//console.log("KeyCode", event.keyCode);
+		console.log("KeyCode", event.keyCode);
 
 		switch (event.keyCode) {
 			case 13:
@@ -92,10 +96,14 @@ $(function(){
 				$('.active_command').addClass('oldCommand');
 				$('.active_command').removeClass('active_command');
 
-				output = parseCommand($('.active').val());
-
-				if (output) {
-					$('.term').append('<div>'+output+'</div>');
+				if ($('.active').val().length !== 0) {
+					output = parseCommand($('.active').val());
+					commandHistory.push($('.active').val());
+					lineNumber = commandHistory.length;
+				
+					if (output) {
+						$('.term').append('<div>'+output+'</div>');
+					}
 				}
 
 				if (cwd === users[user][0]) {
@@ -111,10 +119,28 @@ $(function(){
 				// Left arrow
 				cursorMove(-1);
 				break;
+			case 38:
+				// Up arrow
+			
+				if (lineNumber > 0) {
+					stuff = commandHistory[--lineNumber];
+					console.log(stuff);
+					//movement = stuff.length - $('.active').val().length;
+
+					$('.active').val(stuff);
+
+					//cursorMove(movement);
+					cursorMove(0);
+				}
+
+				break;
 			case 39:
 				// Right arrow
 				cursorMove(1);
 				break;
+			case 40:
+				// Down arrow
+				// ?
 			case 46:
 				// Delete
 				setTimeout(function(){
@@ -145,7 +171,7 @@ $(function(){
 	});
 
 	$('.active').focusout(function() {
-		setTimeout(function(){
+		setTimeout(function() {
 			$('.active').focus();
 		}, 1);
 	});
@@ -154,6 +180,13 @@ $(function(){
 
 function cursorMove(direction) {
 	command = $('.active').val();
+
+	//if (command == "") {
+	//	setTimeout(function() {
+	//		command = $('.active').val();
+	//	}, 1000);
+	//}
+
 	//command = command.replace("<", "&lt;");
 	//command = command.replace(">", "&gt;");
 	length = command.length;
@@ -184,7 +217,11 @@ function cursorMove(direction) {
 
 function parseCommand(command) {
 	command = command.split(' ');
-	return window[commands[command[0]]](command);
+	if (typeof window[commands[command[0]]] === "function") {
+		return window[commands[command[0]]](command);
+	} else {
+		return command[0] + " :command not found";
+	}
 }
 
 function execHelp() {
@@ -194,17 +231,21 @@ function execHelp() {
 		help: list commands<br> \
 		clear: clear the terminal screen<br> \
 		cat: Concatenate FILE(s)<br> \
+		history: display the command history list with line numbers<br> \
 		hostname: display hostname or set hostname<br> \
 		pwd: print name of current/working directory";
 
+	exitStatus = 0;
 	return helpText;
 }
 
 function execClear() {
+	exitStatus = 0;
 	$('.term').html('');
 }
 
 function execPwd(args) {
+	exitStatus = 0;
 	return cwd;
 }
 
@@ -228,10 +269,16 @@ function readFile(file) {
 	}
 }
 
+// [TODO] How..
 function writeFile(file, data) {
 	file = getFullFilePath(file);
 
 	filePath = file.split('/');
+
+	// ?
+	for (i = 0; i <= filePath.length; i++) {
+		console.log(filePath[i]);
+	}
 
 	cfs = filesystem["/"];
 	filePath.forEach(function(element, index) {
@@ -275,16 +322,33 @@ function execCat(args) {
 			}
 		}
 	});
+	
+	exitStatus = status;
 
-	//return [status, output];
 	return output;
 }
 
+function execHistory(args) {
+	historyOutput = "";
+
+	commandHistory.forEach(function(element, index) {
+		historyOutput += index + " : " + element + "<br>";
+	});
+
+	exitStatus = 0;
+	return historyOutput;
+}
+
 function execHostname(args) {
-	if (args[1] !== undefined) {
-		setHostname(args[1]);
-	} else {
+	if (args[1] === undefined || args[1].length === 0) {
+		exitStatus = 0;
 		return hostname;
+	} else if (/[\w\d\.-]+/g.test(args[1])) {
+		setHostname(args[1]);
+		exitStatus = 0;
+	} else {
+		exitStatus = 1;
+		return "hostname: the specified hostname is invalid";
 	}
 }
 
@@ -293,6 +357,7 @@ function setHostname(arg) {
 	//writeFile("/etc/hostname", arg);
 }
 
+// [TODO] Finish this.. how?
 function tabComplete() {
 	command = $('.active').val();
 	command = command.split(' ');
@@ -300,8 +365,7 @@ function tabComplete() {
 	if (command.length === 1) {
 		console.log("Suggest a command");
 		possibleCommands = [];
-		// TODO
-		commands.forEach(function(element) {
+		Object.keys(commands).forEach(function(element) {
 			if (element.indexOf(command[0]) === 0) {
 				possibleCommands.push(element);
 				console.log(element);
