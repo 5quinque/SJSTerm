@@ -15,7 +15,39 @@ var filesystem = {
 		"home" : {
 			"testfile" : "This is a test file",
 			"ryan" : {
-				"pgpkey" : "This is my PGP Key!"
+				"pgpkey" : "-----BEGIN PGP PUBLIC KEY BLOCK----- <br>\
+xsBNBFiOLzMBCADOff8IZQx/SS4ASBTKOZBmfo8IScElprMC6BjFvVSKIG+J<br>\
+pd4LlDPDXOtJ+8ZijqMqkyuuqURFwRbpDR1sBTUk3E7lKmLTiPZjubEoQPCO<br>\
+UC6p3r0yl6Vf891o6yyAl0PZMT95cPiKEuHuBbAYN08qNmZ6JScsVvfSBraV<br>\
+ZeJW2byTfnaKwe4CatnkfAbnSY6HaN0A7DRNny4uzTAETj18Ht2abBVuTVAC<br>\
+2fBWmx8q4gS6ZsVc8q5eDhGdmHSAc5Vg5GkmdsolWMYWdc25b8fJPPJDcOUd<br>\
+FdLwC3fdvez6RKUrrA04MsG54Bs+50CmgJRkVwSZWAbQ9f9hZK3jdHtPABEB<br>\
+AAHNLWxpbm5pdEBwcm90b25tYWlsLmNvbSA8bGlubml0QHByb3Rvbm1haWwu<br>\
+Y29tPsLAdQQQAQgAKQUCWI4vNAYLCQcIAwIJEE5R9o8K1Eq/BBUIAgoDFgIB<br>\
+AhkBAhsDAh4BAABJ9Qf7BDn3MS4HR7esPEfiibGHjUFHpPa/lsa1+ZJaPKiu<br>\
+6CNGN1OxIUMmEiOn8s8FDQplkgnMaqPOVkGFgffevjisiqDwUVBwF+LIkxev<br>\
+ysr3XfysP30N3O143qfJBNmg4imY653hMi2tyrrB3NPlRfUa7Q0UHRtwhrcO<br>\
+qpqn9bOa021SUnTLY4ILj+urMpEWL87ImeE4qCld1aay/SUQHTUkL7rtryuO<br>\
+Nm6ZG1SRN2euJvX16s4XEVp52Hy7JPLzYOwQo4raW2VZyp+h5+7GVEkvydo7<br>\
+FJfjSOGQl9mK9gFEaojrEERY69Hc4McXDg+DpLlpYa7kHaEOHkIDAwWYKqHj<br>\
+DM7ATQRYji8zAQgAoScG4OwfEezF8llVju1zJwQNtN8umuH/4GqjQ/Z7buxh<br>\
+swxdv5itVMVP4nkl+ukxdhK57VKySWtJ4Ut0ExNmtAzEhI1kg3j7U9/+vScJ<br>\
+Gfx9ihkoDQLC97YEIQb5BwkhaEcuivPV+ywpD4hFc/nIAeqI+xuuudjguar7<br>\
+r9s2WBhYTS9t1+SCdFEiIPLUAu24KdOcJrAfXiK0YeeoQ/cX/cMH/3tIpiks<br>\
+Z0w0d4YebflGCB7V+epPeE+d0SdEnOON9XzgC5h0RIO4rAEpQGQZ/90bCuhG<br>\
+jWfOhtzBPPSs+JU6UyzwIvIGGuGqXipeagDYKyQZfcAaw6oHEvnQyNSavQAR<br>\
+AQABwsBfBBgBCAATBQJYji80CRBOUfaPCtRKvwIbDAAAGmEIAKCYMLyXO3HZ<br>\
+wMuvyWXnZ4311eoqWOZvFmm05sFM2eitDvRFSF+T7RkxGHSf0bVvt5nhpizB<br>\
+TYMft8h1Qb0vRtVU09pPsbIPeeKx0DQVmjqBCdsisSBdXD1Gxe++AvpIfMRm<br>\
+nj+1osGXTrmNb6dqJPTnywfBsNrdI9hUp1yvxLgk+61vQDnKAqKnc8nvd4rr<br>\
+5shrI/99IdF7ku8aFZNzZgfW8y2A/wA7slfUw8yuqbV++2rMXqxcK+2MhORX<br>\
+DNapP3PG5FdhCkWrsIzpd/Q6HRbEC087cOZ/9igQOJdztstHjCbhlME6J1Gs<br>\
+ivdE5tDRduEYPMjfK+p3VHoNivZS7XQ=<br>\
+<br>\
+=PL6b<br>\
+<br>\
+-----END PGP PUBLIC KEY BLOCK-----<br>\
+"
 			}
 		},
 		"root" : {
@@ -28,7 +60,13 @@ var users = {
 	"root" : [ "/root" ],
 }
 
-var commands = ["help", "clear", "cat", "test", "hostname", "pwd"];
+var commands = {
+	"help"		: "execHelp",
+	"clear"		: "execClear",
+	"cat"		: "execCat",
+	"hostname"	: "execHostname",
+	"pwd"		: "execPwd",
+};
 
 var cwd = users[user][0];
 
@@ -37,6 +75,11 @@ $(function(){
 
 	$(document).on('click', function() {
 		$('.active').focus();
+	});
+
+	$('.pgp').on('click', function() {
+		$('.active').val("cat /home/ryan/pgpkey");
+		cursorMove("cat /home/ryan/pgpkey".length);
 	});
 
 	$(document).keydown(function(event){
@@ -65,14 +108,15 @@ $(function(){
 				$('.active').val('');
 				break;
 			case 37:
-				console.log("Left arrow!");
+				// Left arrow
 				cursorMove(-1);
 				break;
 			case 39:
-				console.log("Right arrow");
+				// Right arrow
 				cursorMove(1);
 				break;
 			case 46:
+				// Delete
 				setTimeout(function(){
 					cursorMove(0);
 				}, 1);
@@ -140,42 +184,51 @@ function cursorMove(direction) {
 
 function parseCommand(command) {
 	command = command.split(' ');
-	switch (command[0]) {
-		case "help":
-			var helpText = "You want help? \
-				<br> \
-				<br> \
-				help: list commands<br> \
-				clear: clear the terminal screen<br> \
-				cat: Concatenate FILE(s)<br> \
-				hostname: display hostname or set hostname<br> \
-				pwd: print name of current/working directory";
+	return window[commands[command[0]]](command);
+}
 
-			return helpText;
-			break;
-		case "clear":
-			$('.term').html('');
-			break;
-		case 'cat':
-			fileContents = cat(command);
-			return fileContents[1];
-			break;
-		case 'test':
-			return readFile('pgpkey');
-		case 'hostname':
-			return execHostname(command[1]);
-			break;
-		case 'pwd':
-			return cwd;
-			break;
-		case '':
-			break;
-		default:
-			return "Command not found!";
-	}
+function execHelp() {
+	var helpText = "You want help? \
+		<br> \
+		<br> \
+		help: list commands<br> \
+		clear: clear the terminal screen<br> \
+		cat: Concatenate FILE(s)<br> \
+		hostname: display hostname or set hostname<br> \
+		pwd: print name of current/working directory";
+
+	return helpText;
+}
+
+function execClear() {
+	$('.term').html('');
+}
+
+function execPwd(args) {
+	return cwd;
 }
 
 function readFile(file) {
+	file = getFullFilePath(file);
+
+	filePath = file.split('/');
+
+	cfs = filesystem["/"];
+	filePath.forEach(function(element, index) {
+		if (index !== 0) {
+			console.log(element);
+			cfs = cfs[element];
+		}
+	});
+
+	if (cfs !== undefined) {
+		return [0, cfs];
+	} else {
+		return [1];
+	}
+}
+
+function writeFile(file, data) {
 	file = getFullFilePath(file);
 
 	filePath = file.split('/');
@@ -207,7 +260,7 @@ function getFullFilePath(file) {
 	return file;
 }
 
-function cat(args) {
+function execCat(args) {
 	status = 0;
 	output = "";
 
@@ -223,12 +276,13 @@ function cat(args) {
 		}
 	});
 
-	return [status, output];
+	//return [status, output];
+	return output;
 }
 
-function execHostname(arg) {
-	if (arg !== undefined) {
-		setHostname(arg);
+function execHostname(args) {
+	if (args[1] !== undefined) {
+		setHostname(args[1]);
 	} else {
 		return hostname;
 	}
@@ -246,6 +300,7 @@ function tabComplete() {
 	if (command.length === 1) {
 		console.log("Suggest a command");
 		possibleCommands = [];
+		// TODO
 		commands.forEach(function(element) {
 			if (element.indexOf(command[0]) === 0) {
 				possibleCommands.push(element);
@@ -260,6 +315,8 @@ function tabComplete() {
 			$('.active').val(possibleCommands[0]);
 			cursorMove(movement);
 		}
+	} else {
+		console.log("Suggest a file");
 	}
 
 	console.log(command);
