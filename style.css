@@ -9,8 +9,23 @@
 			border-radius: 3px;
 			border: 1px solid #e1e7fb;
 			/*height: 90%;*/
+			width: 90%;
+			margin: auto;
 			margin-top: 1.5em;
 			margin-bottom: 1.5em;
+		}
+
+		.nav {
+			list-style-type: none;
+		}
+
+		.nav-item {
+			display: inline-block;
+		}
+		
+		.nav-link {
+			display: block;
+			padding: 0.5em 1em;
 		}
 
 		a {
@@ -26,6 +41,7 @@
 
 		h3 {
 			line-height: 1.75em;
+			font-weight: 500;
 		}
 
 		
@@ -61,8 +77,8 @@
 		.term {
 			background-color: #1b1b1b;
 			height: 375px;
+			margin: auto 10px;
 			margin-bottom: 1em;
-			border-radius: 2px;
 			padding: 5px;
 			overflow-y: scroll;
 		}
