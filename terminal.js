@@ -187,12 +187,12 @@ function cursorMove(direction) {
 	//}
 
 	if (/</.test(command)) {
-		command = command.replace("<", "&lt;");
+		command = command.replace(/</g, "&lt;");
 	} else if (/>/.test(command)) {
-		command = command.replace(">", "&gt;");
+		command = command.replace(/>/g, "&gt;");
 	}
 
-	length = command.length;
+	length = getCommandLength(command);
 
 	cursorPosition[0] = cursorPosition[0] + direction;
 
@@ -212,30 +212,47 @@ function cursorMove(direction) {
 		$('.cursor').show();
 	}
 
-	commandBeforeCurs = command.substr(0, cursorPosition[0]);
-	commandInCursor = command.substr(cursorPosition[0], 1).replace("&lt;", "<");
-	commandAfterCurs = command.substr(cursorPosition[0] +1);
-
-	fuckCharacter(command, cursorPosition[0]);
+	newHtml = fuckCharacter(command, cursorPosition[0]);
 	
-	//             - - - -
-	// 0 1 2 3 4 5 6 7 8 9 10
-	// T h e b f g & l t ; a
-	//             | - (i, i+3)
-	//               | - (i-1, i+2)
-	//                 | - (i-2, i+3)
-	//                   | - (i-3, i+4)
-	//
-	//newHtml = command.substr(0, cursorPosition[0]) + '<span class="onCursor">' + command.substr(cursorPosition[0], 1)+ '</span>' + command.substr(cursorPosition[0] +1);
-	newHtml = commandBeforeCurs + '<span class="onCursor">' + commandInCursor + '</span>' + commandAfterCurs;
-
 	$('.active_command').html(newHtml);
 }
 
 function fuckCharacter(command, start) {
-	if (/&lt;/.test(command.substr(cursorPosition[0], 3)) {
-		return true;
-	}
+	lessThanSplit = command.split(/(&lt;)/g);
+
+	var charSplit = [];
+
+	lessThanSplit.forEach(function(element, index) {
+		if (element !== "&lt;") {
+			charSplit = charSplit.concat(element.split(""));
+		} else {
+			charSplit.push(element);
+		}
+	});
+
+	
+	commandBeforeCurs = charSplit.slice(0, cursorPosition[0]).join("");
+	commandInCursor = charSplit.slice(cursorPosition[0], cursorPosition[0]+1).join("");
+	commandAfterCurs = charSplit.slice(cursorPosition[0] + 1).join("");
+
+	newHtml = commandBeforeCurs + '<span class="onCursor">' + commandInCursor + '</span>' + commandAfterCurs;
+	return newHtml;
+}
+
+function getCommandLength(command) {
+	lessThanSplit = command.split(/(&lt;)/g);
+
+	var charSplit = [];
+
+	lessThanSplit.forEach(function(element, index) {
+		if (element !== "&lt;") {
+			charSplit = charSplit.concat(element.split(""));
+		} else {
+			charSplit.push(element);
+		}
+	});
+
+	return charSplit.length;
 }
 
 

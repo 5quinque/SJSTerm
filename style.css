@@ -1,7 +1,7 @@
 
 		body {
 			background-color: #f7f9ff;
-			font-family: 'Cutive Mono';
+			font-family: 'Monospace';
 		}
 		
 		.container {
@@ -130,7 +130,7 @@
 			overflow: hidden;
 			position: relative;
 		}
-		.active {
+		.active2 {
 			position: absolute;
 			height: 100px;
 			width: 100px;
