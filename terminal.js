@@ -9,7 +9,7 @@ var exitStatus = 0;
 var filesystem = {
 	"/" : {
 		"etc" : {
-			"hostname" : "www.ryanl.co.uk",
+			"hostname" : "tim",
 			"redhat-release" : "CentOS Linux release 7.3.1611 (Core)"
 		},
 		"home" : {
@@ -47,7 +47,9 @@ ivdE5tDRduEYPMjfK+p3VHoNivZS7XQ=\n\
 =PL6b\n\
 \n\
 -----END PGP PUBLIC KEY BLOCK-----\n\
-"
+",
+				"test" : "This is a test file\n",
+				"test2": "Another test file",
 			}
 		},
 		"root" : {
@@ -66,6 +68,7 @@ var commands = {
 	"cat"		: "execCat",
 	"hostname"	: "execHostname",
 	"history"	: "execHistory",
+	"ls"		: "execLs",
 	"pwd"		: "execPwd",
 };
 
@@ -188,8 +191,6 @@ function cursorMove(direction) {
 
 	if (/</.test(command)) {
 		command = command.replace(/</g, "&lt;");
-	} else if (/>/.test(command)) {
-		command = command.replace(/>/g, "&gt;");
 	}
 
 	length = getCommandLength(command);
@@ -212,12 +213,12 @@ function cursorMove(direction) {
 		$('.cursor').show();
 	}
 
-	newHtml = fuckCharacter(command, cursorPosition[0]);
+	newHtml = getCommandHtml(command, cursorPosition[0]);
 	
 	$('.active_command').html(newHtml);
 }
 
-function fuckCharacter(command, start) {
+function getCommandHtml(command, start) {
 	lessThanSplit = command.split(/(&lt;)/g);
 
 	var charSplit = [];
@@ -230,7 +231,6 @@ function fuckCharacter(command, start) {
 		}
 	});
 
-	
 	commandBeforeCurs = charSplit.slice(0, cursorPosition[0]).join("");
 	commandInCursor = charSplit.slice(cursorPosition[0], cursorPosition[0]+1).join("");
 	commandAfterCurs = charSplit.slice(cursorPosition[0] + 1).join("");
@@ -274,6 +274,7 @@ function execHelp() {
 		cat: Concatenate FILE(s)\n \
 		history: display the command history list with line numbers\n \
 		hostname: display hostname or set hostname\n \
+		ls: list directory contents\n \
 		pwd: print name of current/working directory";
 
 	exitStatus = 0;
@@ -290,6 +291,34 @@ function execPwd(args) {
 	return cwd;
 }
 
+function execLs(args) {
+	output = "";
+
+	if (args.length === 1) {
+		a = readFile(cwd);
+		output += Object.keys(a[1]).join(" ") + "\n";
+	} else if (args.length > 1) {
+		for (i = 1; i < args.length; i++) {
+			a = readFile(args[i]);
+
+			if (a[0] === 1) {
+				output += "ls: cannot access " + args[i] + ": No such file or directory\n";
+			} else {
+				if (typeof a[1] === "object") {
+					if (args.length > 2) {
+						output += args[i] + ":\n";
+					}
+					output += Object.keys(a[1]).join(" ") + "\n";
+				} else {
+					output += args[i];
+				}
+			}
+		}
+	}
+
+	return output;
+}
+
 function readFile(file) {
 	file = getFullFilePath(file);
 
@@ -297,7 +326,7 @@ function readFile(file) {
 
 	cfs = filesystem["/"];
 	filePath.forEach(function(element, index) {
-		if (index !== 0) {
+		if (index !== 0 && element !== "") {
 			console.log(element);
 			cfs = cfs[element];
 		}
