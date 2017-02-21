@@ -123,6 +123,9 @@ $(function(){
 				break;
 			case 38:
 				// Up arrow
+				if (cursorPosition[1] === commandHistory.length) {
+					commandHistory.push($('.active').val());
+				}
 			
 				if (cursorPosition[1] > 0) {
 					stuff = commandHistory[--cursorPosition[1]];
@@ -142,7 +145,18 @@ $(function(){
 				break;
 			case 40:
 				// Down arrow
-				// ?
+				console.log("Down");
+				if (cursorPosition[1] < commandHistory.length) {
+					stuff = commandHistory[++cursorPosition[1]];
+					console.log(stuff);
+					//movement = stuff.length - $('.active').val().length;
+
+					$('.active').val(stuff);
+
+					//cursorMove(movement);
+					cursorMove(0);
+				}
+				break;
 			case 46:
 				// Delete
 				setTimeout(function(){
