@@ -6,16 +6,11 @@ var user = "ryan";
 var hostname = "tim";
 var exitStatus = 0;
 
-var filesystem = {
-	"/" : {
-		"etc" : {
-			"hostname" : "tim",
-			"redhat-release" : "CentOS Linux release 7.3.1611 (Core)"
-		},
-		"home" : {
-			"testfile" : "This is a test file\nblahblah",
-			"ryan" : {
-				"pgpkey" : "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\
+var filesytemTable = {
+	0 : "tim",
+	1 : "CentOS Linux release 7.3.1611 (Core)",
+	2 : "This is a test file\nTest Test Test",
+	3 : "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\
 xsBNBFiOLzMBCADOff8IZQx/SS4ASBTKOZBmfo8IScElprMC6BjFvVSKIG+J\n\
 pd4LlDPDXOtJ+8ZijqMqkyuuqURFwRbpDR1sBTUk3E7lKmLTiPZjubEoQPCO\n\
 UC6p3r0yl6Vf891o6yyAl0PZMT95cPiKEuHuBbAYN08qNmZ6JScsVvfSBraV\n\
@@ -48,8 +43,22 @@ ivdE5tDRduEYPMjfK+p3VHoNivZS7XQ=\n\
 \n\
 -----END PGP PUBLIC KEY BLOCK-----\n\
 ",
-				"test" : "This is a test file\n",
-				"test2": "Another test file",
+	4 : "This is a test file\n",
+	5 : "Another test file",
+
+}
+var filesystem = {
+	"/" : {
+		"etc" : {
+			"hostname" : 0,
+			"redhat-release" : 1,
+		},
+		"home" : {
+			"testfile" : 2,
+			"ryan" : {
+				"pgpkey" : 3,
+				"test" : 4,
+				"test2": 5,
 			}
 		},
 		"root" : {
@@ -70,6 +79,7 @@ var commands = {
 	"history"	: "execHistory",
 	"ls"		: "execLs",
 	"pwd"		: "execPwd",
+	"test"		: "execTest",
 };
 
 var cwd = users[user][0];
@@ -89,7 +99,7 @@ $(function(){
 	});
 
 	$(document).keydown(function(event){
-		console.log("KeyCode", event.keyCode);
+		//console.log("KeyCode", event.keyCode);
 
 		switch (event.keyCode) {
 			case 13:
@@ -347,14 +357,47 @@ function readFile(file) {
 	});
 
 	if (cfs !== undefined) {
-		return [0, cfs];
+		if (typeof cfs === "object") {
+			return [0, cfs];
+		} else {
+			data = filesytemTable[cfs];
+			return [0, data];
+		}
 	} else {
 		return [1];
 	}
 }
 
-// [TODO] How..
+function execTest(args) {
+	writeFile("/home/ryan/test", "TestStuff");
+}
+
 function writeFile(file, data) {
+	file = getFullFilePath(file);
+
+	filePath = file.split('/');
+
+	cfs = filesystem["/"];
+	filePath.forEach(function(element, index) {
+		if (index !== 0 && element !== "") {
+			console.log(element);
+			cfs = cfs[element];
+		}
+	});
+
+	if (cfs !== undefined) {
+		if (typeof cfs !== "object") {
+			filesytemTable[cfs] = data;
+			return [0, data];
+		}
+	} else {
+		return [1];
+	}
+
+}
+
+// [TODO] How..
+function writeFileOld(file, data) {
 	file = getFullFilePath(file);
 
 	filePath = file.split('/');
@@ -367,10 +410,17 @@ function writeFile(file, data) {
 	cfs = filesystem["/"];
 	filePath.forEach(function(element, index) {
 		if (index !== 0) {
-			console.log(element);
-			cfs = cfs[element];
+			if (typeof cfs[element] === "object") {
+				cfs = cfs[element];
+			} else {
+				cfs[element] = data;
+			}
 		}
 	});
+
+	console.log(cfs);
+
+	//filesystem["/"] = cfs;
 
 	if (cfs !== undefined) {
 		return [0, cfs];
