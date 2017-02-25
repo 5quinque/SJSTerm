@@ -8,7 +8,7 @@ var exitStatus = 0;
 
 var filesytemTable = {
 	0 : "tim",
-	1 : "CentOS Linux release 7.3.1611 (Core)",
+	1 : "RyanOS Linux release 1.0.1 (Core)",
 	2 : "This is a test file\nTest Test Test",
 	3 : "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\
 xsBNBFiOLzMBCADOff8IZQx/SS4ASBTKOZBmfo8IScElprMC6BjFvVSKIG+J\n\
@@ -51,7 +51,7 @@ var filesystem = {
 	"/" : {
 		"etc" : {
 			"hostname" : 0,
-			"redhat-release" : 1,
+			"release" : 1,
 		},
 		"home" : {
 			"testfile" : 2,
@@ -75,6 +75,7 @@ var commands = {
 	"help"		: "execHelp",
 	"clear"		: "execClear",
 	"cat"		: "execCat",
+	"cd"		: "execCd",
 	"hostname"	: "execHostname",
 	"history"	: "execHistory",
 	"ls"		: "execLs",
@@ -120,6 +121,8 @@ $(function(){
 
 				if (cwd === users[user][0]) {
 					pscwd = "~";
+				} else {
+					pscwd = cwd;
 				}
 
 				$('.term').append('<code>['+user+'@'+hostname+' ' +pscwd+ ']# <span class="active_command"></span><span class="cursor">_</span></code>');
@@ -296,6 +299,7 @@ function execHelp() {
 		help: list commands\n \
 		clear: clear the terminal screen\n \
 		cat: Concatenate FILE(s)\n \
+		cd: Change directory\n \
 		history: display the command history list with line numbers\n \
 		hostname: display hostname or set hostname\n \
 		ls: list directory contents\n \
@@ -320,7 +324,7 @@ function execLs(args) {
 
 	if (args.length === 1) {
 		a = readFile(cwd);
-		output += Object.keys(a[1]).join(" ") + "\n";
+		output += Object.keys(a).join(" ") + "\n";
 	} else if (args.length > 1) {
 		for (i = 1; i < args.length; i++) {
 			a = readFile(args[i]);
@@ -344,6 +348,8 @@ function execLs(args) {
 }
 
 function readFile(file) {
+	exitStatus = 0;
+
 	file = getFullFilePath(file);
 
 	filePath = file.split('/');
@@ -351,20 +357,19 @@ function readFile(file) {
 	cfs = filesystem["/"];
 	filePath.forEach(function(element, index) {
 		if (index !== 0 && element !== "") {
-			console.log(element);
 			cfs = cfs[element];
 		}
 	});
 
 	if (cfs !== undefined) {
 		if (typeof cfs === "object") {
-			return [0, cfs];
+			return cfs;
 		} else {
 			data = filesytemTable[cfs];
-			return [0, data];
+			return data;
 		}
 	} else {
-		return [1];
+		exitStatus = 1;
 	}
 }
 
@@ -380,7 +385,6 @@ function writeFile(file, data) {
 	cfs = filesystem["/"];
 	filePath.forEach(function(element, index) {
 		if (index !== 0 && element !== "") {
-			console.log(element);
 			cfs = cfs[element];
 		}
 	});
@@ -394,39 +398,6 @@ function writeFile(file, data) {
 		return [1];
 	}
 
-}
-
-// [TODO] How..
-function writeFileOld(file, data) {
-	file = getFullFilePath(file);
-
-	filePath = file.split('/');
-
-	// ?
-	for (i = 0; i <= filePath.length; i++) {
-		console.log(filePath[i]);
-	}
-
-	cfs = filesystem["/"];
-	filePath.forEach(function(element, index) {
-		if (index !== 0) {
-			if (typeof cfs[element] === "object") {
-				cfs = cfs[element];
-			} else {
-				cfs[element] = data;
-			}
-		}
-	});
-
-	console.log(cfs);
-
-	//filesystem["/"] = cfs;
-
-	if (cfs !== undefined) {
-		return [0, cfs];
-	} else {
-		return [1];
-	}
 }
 
 function getFullFilePath(file) {
@@ -448,8 +419,8 @@ function execCat(args) {
 	args.forEach(function(element, index) {
 		if (index !== 0) {
 			file = readFile(element);
-			if (file[0] === 0) {
-				output += file[1];
+			if (exitStatus === 0) {
+				output += file;
 			} else {
 				output += "cat: " + element + ": No such file or directory";
 				status = 1;
@@ -460,6 +431,22 @@ function execCat(args) {
 	exitStatus = status;
 
 	return output;
+}
+
+function execCd(args) {
+	status = 0;
+
+	if (args.length === 1) {
+		cwd = users[user][0];
+	} else {
+		if (typeof readFile(args[1]) === "object") {
+			exitStatus = status;
+			cwd = args[1];
+		} else {
+			exitStatus = 1;
+			return "cd: " + args[1] + ": No such file or directory";
+		}
+	}
 }
 
 function execHistory(args) {
@@ -488,7 +475,7 @@ function execHostname(args) {
 
 function setHostname(arg) {
 	hostname = arg;
-	//writeFile("/etc/hostname", arg);
+	writeFile("/etc/hostname", arg);
 }
 
 // [TODO] Finish this.. how?
