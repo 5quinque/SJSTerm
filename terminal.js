@@ -112,7 +112,9 @@ $(function(){
 				if ($('.active').val().length !== 0) {
 					output = parseCommand($('.active').val());
 					commandHistory.push($('.active').val());
+
 					cursorPosition[1] = commandHistory.length;
+					cursorPosition[0] = 0;
 				
 					if (output) {
 						$('.term').append('<code style="white-space: pre-wrap;">'+output+'</code>');
@@ -136,6 +138,7 @@ $(function(){
 				break;
 			case 38:
 				// Up arrow
+				// [TODO] If we up down, then back down, remove this from history
 				if (cursorPosition[1] === commandHistory.length) {
 					commandHistory.push($('.active').val());
 				}
@@ -143,12 +146,14 @@ $(function(){
 				if (cursorPosition[1] > 0) {
 					stuff = commandHistory[--cursorPosition[1]];
 					console.log(stuff);
-					//movement = stuff.length - $('.active').val().length;
+
+					movement = stuff.length - $('.active').val().length;
+					console.log("New: ", stuff.length, "Current: ", $('.active').val().length);
+					console.log("Movement: ", movement);
 
 					$('.active').val(stuff);
 
-					//cursorMove(movement);
-					cursorMove(0);
+					cursorMove(movement);
 				}
 
 				break;
@@ -159,15 +164,14 @@ $(function(){
 			case 40:
 				// Down arrow
 				console.log("Down");
-				if (cursorPosition[1] < commandHistory.length) {
+				if (cursorPosition[1] < commandHistory.length-1) {
 					stuff = commandHistory[++cursorPosition[1]];
 					console.log(stuff);
-					//movement = stuff.length - $('.active').val().length;
+					movement = stuff.length - $('.active').val().length;
 
 					$('.active').val(stuff);
 
-					//cursorMove(movement);
-					cursorMove(0);
+					cursorMove(movement);
 				}
 				break;
 			case 46:
@@ -478,7 +482,7 @@ function setHostname(arg) {
 	writeFile("/etc/hostname", arg);
 }
 
-// [TODO] Finish this.. how?
+// [TODO] Finish this..
 function tabComplete() {
 	command = $('.active').val();
 	command = command.split(' ');
@@ -502,6 +506,10 @@ function tabComplete() {
 		}
 	} else {
 		console.log("Suggest a file");
+		last = command.length;
+		partial = command[last];
+
+		//..
 	}
 
 	console.log(command);
